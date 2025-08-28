@@ -6,6 +6,7 @@ import {ErrorHandlerMiddleware} from "./middleware/error";
 import UserRouter from "./Routes/user.route";
 
 import cookieParser from "cookie-parser";
+import courseRouter from "./Routes/course.route";
 
 console.log(process.env.ORIGIN)
 
@@ -30,6 +31,7 @@ app.get("/test",(req: Request, res: Response, next: NextFunction)=>{
 });
 // routes
 app.use("/api/v1",UserRouter)
+app.use("/api/v2",courseRouter)
 
 app.all("*",(req:Request, res:Response, next: NextFunction)=>{
  const err = new Error(`Route ${req.originalUrl} not found`) as any;
