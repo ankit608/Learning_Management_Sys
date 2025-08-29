@@ -6,6 +6,11 @@ import cloudinary from "cloudinary"
 import { createCourse } from "../services/course.service";
 import CourseModel from "../models/course.model";
 import mongoose, { mongo } from "mongoose";
+import { name } from "ejs";
+import { title } from "process";
+import ejs from "ejs"
+import path from "path";
+import sendMail from "../utils/sendmail";
 
 //upload course
 
@@ -255,6 +260,29 @@ export const addAnswer = catchAsyncError(async(req:Request,res:Response,next:Nex
 
         question?.questionReplies.push(newAnswer)
         await course?.save()
+
+        if(req.user?._id === question.user._id){
+            return next(new ErrorHandler("You can't answer your own question",400))}else{
+
+                const data = {
+                     name: req.user?.name,
+                     title: courseContent.title
+                }
+
+                const html = await ejs.renderFile(path.join(__dirname, "../mails/question-reply.ejs"), data)
+                try {
+                    await sendMail({
+                        email: question.user.email,
+                        subject: "Answer to your question",
+                        template: "question-reply.ejs",
+                        data
+                    })
+                } catch (error: any) {
+                 return next(new ErrorHandler(error.message,400)) 
+                }
+
+            }
+
         res.status(200).json({
             success:true,
             course
@@ -264,4 +292,4 @@ export const addAnswer = catchAsyncError(async(req:Request,res:Response,next:Nex
         return next(new ErrorHandler(error.message,400))
     }
 
-})   
+})  
